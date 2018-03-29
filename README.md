@@ -16,13 +16,13 @@ This is the final project for the [Udacity Self-Driving Car Nanodegree](https://
 
 ### Visualization
 
-We leveraged [WolfPacks] (https://github.com/ericlavigne/CarND-Capstone-Wolf-Pack) visualization package to visualize the car, path and traffic lights in rviz.
+We leveraged [WolfPacks](https://github.com/ericlavigne/CarND-Capstone-Wolf-Pack) visualization package to visualize the car, path and traffic lights in rviz.
 
 ![visualization](https://github.com/ZXspectrumZ80/ROS-Racers-CarND-Capstone/blob/master/imgs/rviz_visualization.png)
 
 ### Parameter Tuning
 
-We leveraged [rqt_multiplot] (http://wiki.ros.org/rqt_multiplot) to plot multiple parameters during testing so we could fine tune the controls for steering, throttle and braking.
+We leveraged [rqt_multiplot](http://wiki.ros.org/rqt_multiplot) to plot multiple parameters during testing so we could fine tune the controls for steering, throttle and braking.
 
 ![rqt_multiplot](https://github.com/ZXspectrumZ80/ROS-Racers-CarND-Capstone/blob/master/imgs/PID_visualization.png)
 
