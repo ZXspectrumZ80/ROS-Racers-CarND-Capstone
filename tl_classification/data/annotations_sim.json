@@ -1,0 +1,28 @@
+{
+  "images": [
+    {
+      "filename": "frame0000.jpg",
+      "objects": [
+        {"class":"green", "bbox":[123,255,183,386]},
+        {"class":"green", "bbox":[371,259,432,390]},
+        {"class":"green", "bbox":[620,266,679,392]}
+      ]
+    },
+    {
+      "filename": "frame0059.jpg",
+      "objects": [
+        {"class":"yellow", "bbox":[120,249,177,381]},
+        {"class":"yellow", "bbox":[372,255,431,384]},
+        {"class":"yellow", "bbox":[627,259,684,387]}
+      ]
+    },
+    {
+      "filename": "frame0087.jpg",
+      "objects": [
+        {"class":"red", "bbox":[100,125,163,356]},
+        {"class":"red", "bbox":[376,217,438,362]},
+        {"class":"red", "bbox":[653,225,718,365]}
+      ]
+    }
+  ]
+}
