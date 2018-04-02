@@ -47,9 +47,9 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
 
         self.max_velocity = 0 # initial value, gets updated from waypoints
-        throttle_kp = 0.3 # to be set after integrating with waypoint updater
-        throttle_ki = 0.003
-        throttle_kd = 3.0
+        throttle_kp = 0.35                   # previous value 0.3 # to be set after integrating with waypoint updater
+        throttle_ki = 0.0005                 # previous value 0.003
+        throttle_kd = 6.5                    # previous value 3.0
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
