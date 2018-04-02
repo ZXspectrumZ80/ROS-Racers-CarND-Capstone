@@ -6,6 +6,7 @@ import sys
 import math
 import rospy
 import tf
+import numpy as np
 
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint, TrafficLightArray, TrafficLight
@@ -33,10 +34,11 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         # subscriber nodes
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=1)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb, queue_size=1)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb, queue_size=1)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
+        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
 
         # publisher nodes
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -56,7 +58,7 @@ class WaypointUpdater(object):
         """ 
         loop() - continuous loop that processes messages and publishes final waypoints
         """
-        rate = rospy.Rate(2)        # 2 Hz
+        rate = rospy.Rate(10)        # 10 Hz  / previously was 2 Hz
         while not rospy.is_shutdown():
             if (self.current_pose is not None) and (self.base_waypoints is not None):
                 # get index of next waypoint
@@ -77,7 +79,7 @@ class WaypointUpdater(object):
         Return: 
             index of closest waypoint
         """
-        closest_wp = 100000
+        closest_wp = 1e4        # Any big number
 
         # sets up pose and waypoints
         p1 = pose.position
@@ -93,6 +95,20 @@ class WaypointUpdater(object):
             if d < closest_wp:
                 closest_wp = d
                 closest_index = i
+
+        # Check if the closest point is ahead or behind the Ego Car
+        closest_coord_vector = np.array([waypoints[closest_index].pose.pose.position.x ,
+                                  waypoints[closest_index].pose.pose.position.y])
+        prev_coord_vector    = np.array([waypoints[closest_index-2].pose.pose.position.x ,
+                                  waypoints[closest_index-2].pose.pose.position.y])
+
+        current_pos_vector   = np.array([p1.x, p1.y])
+
+        DOT_Product_val = np.dot( (closest_coord_vector - prev_coord_vector),
+                      (current_pos_vector - closest_coord_vector) )
+
+        if DOT_Product_val > 0:      # The Closest Point is behind the Ego Car
+            closest_index = (closest_index + 5) % len(waypoints)   # increment the index by 5 step (by trial and error)
 
         return closest_index
 
