@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images_real</folder>
+	<filename>frame0921.jpg</filename>
+	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/images_real/frame0921.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>800</width>
+		<height>600</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>red</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>306</xmin>
+			<ymin>37</ymin>
+			<xmax>361</xmax>
+			<ymax>198</ymax>
+		</bndbox>
+	</object>
+</annotation>
