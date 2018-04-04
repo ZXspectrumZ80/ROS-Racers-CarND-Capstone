@@ -1,12 +1,12 @@
+#!/usr/bin/env python
+
 import tensorflow as tf
 import json
 
 from object_detection.utils import dataset_util
+from config import *
 
-
-flags = tf.app.flags
-flags.DEFINE_string('output_path', 'output/tl.record', 'Path to output TFRecord')
-FLAGS = flags.FLAGS
+output_path = OUTPUT_DIR + '/tl.record'
 
 LABEL_DICT =  {
   "red" : 1,
@@ -61,7 +61,7 @@ def create_tf_example(example):
 
 
 def main(_):
-  writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
+  writer = tf.python_io.TFRecordWriter(output_path)
 
   annotations_file = "data/annotations_sim.json"
 
