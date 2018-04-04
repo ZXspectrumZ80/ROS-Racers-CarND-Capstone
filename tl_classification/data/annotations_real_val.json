@@ -1,0 +1,49 @@
+{
+  "images": [
+    {
+      "folder": "images_real_val", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            417, 
+            85, 
+            438, 
+            150
+          ]
+        }
+      ], 
+      "filename": "frame0166.jpg"
+    }, 
+    {
+      "folder": "images_real_val", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            384, 
+            89, 
+            406, 
+            149
+          ]
+        }
+      ], 
+      "filename": "frame0451.jpg"
+    }, 
+    {
+      "folder": "images_real_val", 
+      "objects": [
+        {
+          "class": "yellow", 
+          "bbox": [
+            454, 
+            95, 
+            473, 
+            151
+          ]
+        }
+      ], 
+      "filename": "frame0863.jpg"
+    }
+  ]
+}

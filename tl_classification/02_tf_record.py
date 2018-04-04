@@ -6,8 +6,6 @@ import json
 from object_detection.utils import dataset_util
 from config import *
 
-output_path = OUTPUT_DIR + '/tl.record'
-
 LABEL_DICT =  {
   "red" : 1,
   "yellow" : 2,
@@ -17,9 +15,10 @@ LABEL_DICT =  {
 def create_tf_example(example):
   height = 600 # Image height
   width = 800 # Image width
+
   filename = example['filename'].encode() # Filename of the image. Empty if image is not from file
   encoded_image_data = None # Encoded image bytes
-  image_path = "data/images_sim/" + example['filename']
+  image_path = "data/" + example['folder'] + "/" + example['filename']
   with tf.gfile.GFile(image_path, 'rb') as fid:
     encoded_image_data = fid.read()
 
@@ -34,14 +33,17 @@ def create_tf_example(example):
   classes_text = [] # List of string class name of bounding box (1 per box)
   classes = [] # List of integer class id of bounding box (1 per box)
 
-  for obj in example['objects']:
-    bbox = obj["bbox"]
-    xmins.append(float(bbox[0] * 1.0/ width))
-    xmaxs.append(float(bbox[2] * 1.0/ width))
-    ymins.append(float(bbox[1] * 1.0/ height))
-    ymaxs.append(float(bbox[3] * 1.0/ height))
-    classes_text.append(obj['class'].encode())
-    classes.append(int(LABEL_DICT[obj['class']]))
+  try:
+    for obj in example['objects']:
+      bbox = obj["bbox"]
+      xmins.append(float(bbox[0] * 1.0/ width))
+      xmaxs.append(float(bbox[2] * 1.0/ width))
+      ymins.append(float(bbox[1] * 1.0/ height))
+      ymaxs.append(float(bbox[3] * 1.0/ height))
+      classes_text.append(obj['class'].encode())
+      classes.append(int(LABEL_DICT[obj['class']]))
+  except TypeError as e:
+    print("type error:" + image_path)
 
   tf_example = tf.train.Example(features=tf.train.Features(feature={
       'image/height': dataset_util.int64_feature(height),
@@ -59,11 +61,11 @@ def create_tf_example(example):
   }))
   return tf_example
 
-
-def main(_):
+def record(postfix):
+  output_path = OUTPUT_DIR + "/tl_" + postfix + ".record"
   writer = tf.python_io.TFRecordWriter(output_path)
 
-  annotations_file = "data/annotations_sim.json"
+  annotations_file = "data/annotations_" + postfix + ".json"
 
   images = []
   with tf.gfile.GFile(annotations_file, 'r') as fid:
@@ -75,6 +77,14 @@ def main(_):
     writer.write(tf_example.SerializeToString())
 
   writer.close()
+
+
+def main(_):
+  for s in ["train", "val"]:
+    postfix = MODE
+    if s == "val":
+      postfix += "_val"
+    record(postfix)
 
 
 if __name__ == '__main__':

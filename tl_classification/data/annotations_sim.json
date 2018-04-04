@@ -1,28 +1,544 @@
 {
   "images": [
     {
-      "filename": "frame0000.jpg",
+      "folder": "images_sim", 
       "objects": [
-        {"class":"green", "bbox":[123,255,183,386]},
-        {"class":"green", "bbox":[371,259,432,390]},
-        {"class":"green", "bbox":[620,266,679,392]}
-      ]
-    },
+        {
+          "class": "green", 
+          "bbox": [
+            121, 
+            254, 
+            184, 
+            381
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            371, 
+            262, 
+            432, 
+            388
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            619, 
+            262, 
+            680, 
+            393
+          ]
+        }
+      ], 
+      "filename": "frame0000.jpg"
+    }, 
     {
-      "filename": "frame0059.jpg",
+      "folder": "images_sim", 
       "objects": [
-        {"class":"yellow", "bbox":[120,249,177,381]},
-        {"class":"yellow", "bbox":[372,255,431,384]},
-        {"class":"yellow", "bbox":[627,259,684,387]}
-      ]
-    },
+        {
+          "class": "yellow", 
+          "bbox": [
+            119, 
+            248, 
+            181, 
+            383
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            372, 
+            254, 
+            431, 
+            386
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            629, 
+            259, 
+            687, 
+            390
+          ]
+        }
+      ], 
+      "filename": "frame0059.jpg"
+    }, 
     {
-      "filename": "frame0087.jpg",
+      "folder": "images_sim", 
       "objects": [
-        {"class":"red", "bbox":[100,125,163,356]},
-        {"class":"red", "bbox":[376,217,438,362]},
-        {"class":"red", "bbox":[653,225,718,365]}
-      ]
+        {
+          "class": "red", 
+          "bbox": [
+            97, 
+            215, 
+            164, 
+            358
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            375, 
+            217, 
+            440, 
+            358
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            650, 
+            221, 
+            721, 
+            364
+          ]
+        }
+      ], 
+      "filename": "frame0087.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            23, 
+            92, 
+            107, 
+            276
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            380, 
+            99, 
+            463, 
+            283
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            735, 
+            102, 
+            800, 
+            287
+          ]
+        }
+      ], 
+      "filename": "frame0211.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            1, 
+            8, 
+            59, 
+            225
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            378, 
+            13, 
+            474, 
+            231
+          ]
+        }
+      ], 
+      "filename": "frame0225.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            162, 
+            384, 
+            197, 
+            465
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            322, 
+            390, 
+            357, 
+            469
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            480, 
+            393, 
+            515, 
+            478
+          ]
+        }
+      ], 
+      "filename": "frame0365.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            47, 
+            248, 
+            104, 
+            375
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            301, 
+            257, 
+            355, 
+            385
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            549, 
+            263, 
+            607, 
+            389
+          ]
+        }
+      ], 
+      "filename": "frame0383.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            280, 
+            142, 
+            356, 
+            307
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            609, 
+            152, 
+            679, 
+            315
+          ]
+        }
+      ], 
+      "filename": "frame0413.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            279, 
+            136, 
+            354, 
+            308
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            606, 
+            141, 
+            681, 
+            313
+          ]
+        }
+      ], 
+      "filename": "frame0451.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            24, 
+            309, 
+            73, 
+            421
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            241, 
+            313, 
+            290, 
+            426
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            456, 
+            321, 
+            506, 
+            433
+          ]
+        }
+      ], 
+      "filename": "frame0577.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            232, 
+            133, 
+            306, 
+            300
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            559, 
+            148, 
+            634, 
+            317
+          ]
+        }
+      ], 
+      "filename": "frame0597.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            212, 
+            65, 
+            302, 
+            256
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            590, 
+            76, 
+            677, 
+            272
+          ]
+        }
+      ], 
+      "filename": "frame0706.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "yellow", 
+          "bbox": [
+            403, 
+            395, 
+            443, 
+            476
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            559, 
+            398, 
+            596, 
+            478
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            712, 
+            400, 
+            749, 
+            480
+          ]
+        }
+      ], 
+      "filename": "frame0799.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "yellow", 
+          "bbox": [
+            114, 
+            286, 
+            167, 
+            404
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            346, 
+            294, 
+            399, 
+            411
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            577, 
+            300, 
+            629, 
+            415
+          ]
+        }
+      ], 
+      "filename": "frame0811.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            42, 
+            174, 
+            109, 
+            325
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            344, 
+            182, 
+            411, 
+            332
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            641, 
+            192, 
+            708, 
+            341
+          ]
+        }
+      ], 
+      "filename": "frame0827.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            31, 
+            96, 
+            113, 
+            276
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            387, 
+            112, 
+            468, 
+            285
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            736, 
+            119, 
+            800, 
+            295
+          ]
+        }
+      ], 
+      "filename": "frame0944.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            17, 
+            166, 
+            83, 
+            318
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            322, 
+            172, 
+            389, 
+            327
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            627, 
+            180, 
+            696, 
+            336
+          ]
+        }
+      ], 
+      "filename": "frame1166.jpg"
+    }, 
+    {
+      "folder": "images_sim", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            311, 
+            76, 
+            396, 
+            266
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            679, 
+            92, 
+            763, 
+            275
+          ]
+        }
+      ], 
+      "filename": "frame1186.jpg"
     }
   ]
 }

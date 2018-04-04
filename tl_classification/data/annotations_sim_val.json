@@ -1,0 +1,217 @@
+{
+  "images": [
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            129, 
+            259, 
+            180, 
+            385
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            373, 
+            259, 
+            431, 
+            389
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            622, 
+            263, 
+            678, 
+            392
+          ]
+        }
+      ], 
+      "filename": "frame0009.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "yellow", 
+          "bbox": [
+            122, 
+            249, 
+            174, 
+            376
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            375, 
+            250, 
+            431, 
+            381
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            629, 
+            254, 
+            689, 
+            384
+          ]
+        }
+      ], 
+      "filename": "frame0063.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            94, 
+            205, 
+            155, 
+            352
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            376, 
+            209, 
+            441, 
+            354
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            658, 
+            214, 
+            725, 
+            359
+          ]
+        }
+      ], 
+      "filename": "frame0092.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "green", 
+          "bbox": [
+            1, 
+            49, 
+            79, 
+            242
+          ]
+        }, 
+        {
+          "class": "green", 
+          "bbox": [
+            376, 
+            52, 
+            465, 
+            249
+          ]
+        }
+      ], 
+      "filename": "frame0223.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            1, 
+            151, 
+            45, 
+            304
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            285, 
+            157, 
+            355, 
+            317
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            597, 
+            171, 
+            667, 
+            325
+          ]
+        }
+      ], 
+      "filename": "frame0400.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "red", 
+          "bbox": [
+            230, 
+            132, 
+            307, 
+            303
+          ]
+        }, 
+        {
+          "class": "red", 
+          "bbox": [
+            559, 
+            145, 
+            636, 
+            312
+          ]
+        }
+      ], 
+      "filename": "frame0610.jpg"
+    }, 
+    {
+      "folder": "images_sim_val", 
+      "objects": [
+        {
+          "class": "yellow", 
+          "bbox": [
+            145, 
+            314, 
+            192, 
+            420
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            348, 
+            318, 
+            397, 
+            426
+          ]
+        }, 
+        {
+          "class": "yellow", 
+          "bbox": [
+            550, 
+            326, 
+            598, 
+            427
+          ]
+        }
+      ], 
+      "filename": "frame0807.jpg"
+    }
+  ]
+}
