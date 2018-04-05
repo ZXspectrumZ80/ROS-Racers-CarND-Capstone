@@ -28,6 +28,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 	# Number of waypoints we will publish. You can change this number
+MAX_DECELERATION = 0.5
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -39,80 +40,88 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb, queue_size=1)
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
+        rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.trafficLights_cb, queue_size=1)
 
         # publisher nodes
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # member variables
-        self.current_pose = None
-        self.current_velocity = None
-        self.current_heading = None
-        self.base_waypoints = None
-        self.traffic_waypoint = None
-        self.traffic_lights = None
+        self.egoCar_pose             = None
+        self.egoCar_heading          = None
+        self.egoCar_velocity         = None
+        self.full_track_wpts         = None
+        self.traffic_waypoint        = None
+        self.traffic_lights          = None
 
-        # run process to update waypoints
+        self.stopline_wp_index       = -1
+        self.egoCar_closest_wp_index = None
+        self.egoCar_ahead_waypoints  = None
+        self.egoCar_lane             = None
+
+        # run process to update EgoCar waypoints
         self.loop()
+    ###########################################################################
 
     def loop(self):
         """ 
         loop() - continuous loop that processes messages and publishes final waypoints
         """
-        rate = rospy.Rate(10)        # 10 Hz  / previously was 2 Hz
+        Update_rate = rospy.Rate(10)        # 10 Hz  / previously was 2 Hz
         while not rospy.is_shutdown():
-            if (self.current_pose is not None) and (self.base_waypoints is not None):
+            if (self.egoCar_pose is not None) and (self.full_track_wpts is not None):
                 # get index of next waypoint
-                next_index = self.get_next_waypoint(self.current_pose)
+                self.get_egoCar_first_wp_index()
                 # generate final_waypoints
-                final_waypoints = self.get_final_waypoints(next_index)
+                self.get_egoCar_ahead_waypoints()
                 # publish message
-                self.publish_waypoints(final_waypoints)
+                self.publish_egoCar_waypoints()
                 # pause for delay time
-                rate.sleep()
+                Update_rate.sleep()
+    ############################################################################
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_track_waypoint(self):
         """ 
-        get_closest_waypoint(pose)
+        get_closest_track_waypoint(pose)
         gets closest waypoint index, leveraged from path planning
         Input: 
             current pose
         Return: 
             index of closest waypoint
         """
-        closest_wp = 1e4        # Any big number
+        closest_wp_distance = 1e4        # Any big number
 
         # sets up pose and waypoints
-        p1 = pose.position
-        if self.base_waypoints is not None:
-            waypoints = self.base_waypoints.waypoints
+        if self.full_track_wpts is not None:
+            full_track_wpts = self.full_track_wpts.waypoints
         else:
             return -1
 
         # compares each waypoint to current pose
-        for i in range(len(waypoints)):
-            wp2 = waypoints[i].pose.pose.position
-            d = self.dist(p1, wp2)
-            if d < closest_wp:
-                closest_wp = d
-                closest_index = i
+        for i in range(len(full_track_wpts)):
+            wpt_pose_distance = self.dist(self.egoCar_pose.position,
+                                          full_track_wpts[i].pose.pose.position)
+            if wpt_pose_distance < closest_wp_distance:
+                closest_wp_distance = wpt_pose_distance
+                closest_track_wp_index = i
 
         # Check if the closest point is ahead or behind the Ego Car
-        closest_coord_vector = np.array([waypoints[closest_index].pose.pose.position.x ,
-                                  waypoints[closest_index].pose.pose.position.y])
-        prev_coord_vector    = np.array([waypoints[closest_index-2].pose.pose.position.x ,
-                                  waypoints[closest_index-2].pose.pose.position.y])
+        closest_track_wp_vector = np.array([full_track_wpts[closest_track_wp_index].pose.pose.position.x ,
+                                            full_track_wpts[closest_track_wp_index].pose.pose.position.y])
+        prev_track_wp_vector    = np.array([full_track_wpts[closest_track_wp_index-2].pose.pose.position.x ,
+                                            full_track_wpts[closest_track_wp_index-2].pose.pose.position.y])
+        egoCar_pos_vector       = np.array([self.egoCar_pose.position.x,
+                                            self.egoCar_pose.position.y])
 
-        current_pos_vector   = np.array([p1.x, p1.y])
-
-        DOT_Product_val = np.dot( (closest_coord_vector - prev_coord_vector),
-                      (current_pos_vector - closest_coord_vector) )
+        DOT_Product_val = np.dot( (closest_track_wp_vector - prev_track_wp_vector),
+                                  (egoCar_pos_vector - closest_track_wp_vector) )
 
         if DOT_Product_val > 0:      # The Closest Point is behind the Ego Car
-            closest_index = (closest_index + 5) % len(waypoints)   # increment the index by 5 step (by trial and error)
+            closest_track_wp_index = (closest_track_wp_index + 5) % len(full_track_wpts)   # increment the index by 5 step (by trial and error)
 
-        return closest_index
+        return closest_track_wp_index
+    ###########################################################################
 
-    def get_next_waypoint(self, pose):
+    def get_egoCar_first_wp_index(self):
         """ 
         get_next_waypoint(pose)
         gets next waypoint index, leveraged from path planning
@@ -122,22 +131,24 @@ class WaypointUpdater(object):
             index of next waypoint
         """
         # gets closest waypoint
-        next_index = self.get_closest_waypoint(pose)
-        p1 = pose.position
-        p2 = self.base_waypoints.waypoints[next_index].pose.pose.position
+
+        egoCar_first_wp_index = self.get_closest_track_waypoint()
+        p1 = self.egoCar_pose.position
+        p2 = self.full_track_wpts.waypoints[egoCar_first_wp_index].pose.pose.position
 
         # checks angle and increases index if angle too large
         heading = math.atan2((p2.y - p1.y), (p2.x - p1.x))
-        if self.current_heading is not None:
-            angle = abs(self.current_heading - heading)
+        if self.egoCar_heading is not None:
+            angle = abs(self.egoCar_heading - heading)
             if angle > math.pi/4:
-                next_index += 1
+                egoCar_first_wp_index += 1
+        self.egoCar_closest_wp_index = egoCar_first_wp_index
 
-        return next_index
+    ###########################################################################
 
-    def get_final_waypoints(self, index):
+    def get_egoCar_ahead_waypoints(self):
         """ 
-        get_final_waypoints(index)
+        get_egoCar_ahead_waypoints()
         gets the waypoints from the index to the number of look ahead waypoints
         Input: 
             index in waypoint list
@@ -145,34 +156,16 @@ class WaypointUpdater(object):
             list of waypoints to publish
         """
         # setup list
-        final_waypoints = []
-        wp_len = len(self.base_waypoints.waypoints)  # length of waypoints, and wrap if needed
 
-        # fill waypoint messages and build list
-        for i in range(LOOKAHEAD_WPS):
-            wp = Waypoint()
-            # setup pose 
-            wp.pose.pose.position.x = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.position.x
-            wp.pose.pose.position.y = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.position.y
-            wp.pose.pose.position.z = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.position.z
-            # setup orientation
-            wp.pose.pose.orientation.x = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.orientation.x
-            wp.pose.pose.orientation.y = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.orientation.y
-            wp.pose.pose.orientation.z = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.orientation.z
-            wp.pose.pose.orientation.w = self.base_waypoints.waypoints[(index+i) % wp_len].pose.pose.orientation.w
-            # setup twist 
-            wp.twist.twist.linear.x = self.base_waypoints.waypoints[(index+i) % wp_len].twist.twist.linear.x
-            wp.twist.twist.linear.y = 0.0
-            wp.twist.twist.linear.z = 0.0
-            wp.twist.twist.angular.x = 0.0
-            wp.twist.twist.angular.y = 0.0
-            wp.twist.twist.angular.z = 0.0
-            # append to list
-            final_waypoints.append(wp)
+        closest_egoCar_wp_index  = self.egoCar_closest_wp_index
+        farthest_egoCar_wp_index = closest_egoCar_wp_index + LOOKAHEAD_WPS
 
-        return final_waypoints
+        egoCar_ahead_waypoints = self.full_track_wpts.waypoints[closest_egoCar_wp_index:farthest_egoCar_wp_index]
+        self.egoCar_ahead_waypoints = egoCar_ahead_waypoints
 
-    def publish_waypoints(self, waypoints):
+    ###########################################################################
+
+    def publish_egoCar_waypoints(self):
         """
         publish_waypoints(waypoints)
         sets up the header and publishes the waypoint message
@@ -180,14 +173,49 @@ class WaypointUpdater(object):
         Input: 
             waypoints - final set of waypoints
         """
-        lane = Lane()
-        # setup header and transform
-        lane.header.frame_id = '/world'
-        lane.header.stamp = rospy.Time(0)
+
         # setup list of waypoints
-        lane.waypoints = waypoints
+        self.generate_egoCar_lane()
         # publish message
-        self.final_waypoints_pub.publish(lane)
+        self.final_waypoints_pub.publish(self.egoCar_lane)
+
+    ###########################################################################
+
+    def generate_egoCar_lane(self):
+
+        egoCar_lane = Lane()
+        egoCar_lane.header.frame_id = '/world'
+        egoCar_lane.header.stamp = rospy.Time(0)
+
+        farthest_egoCar_wp_index = self.egoCar_closest_wp_index + LOOKAHEAD_WPS
+
+        if (self.stopline_wp_index == -1) or (self.stopline_wp_index >= farthest_egoCar_wp_index):
+            egoCar_lane.waypoints = self.egoCar_ahead_waypoints
+        else:
+            egoCar_lane.waypoints = self.decelerate_egoCar_waypoints()
+
+        self.egoCar_lane = egoCar_lane
+
+    ###########################################################################
+
+    def decelerate_egoCar_waypoints(self):
+
+        Updated_egoCar_ahead_waypoints = []
+        for ahead_wp_index, ahead_wp in enumerate(self.egoCar_ahead_waypoints):
+            wp = Waypoint()
+            wp.pose = ahead_wp.pose
+            # 2 points back from the line so front of the Ego Car stops almost on the line
+            stop_index = max(self.stopline_wp_index - self.closest_egoCar_wp_index - 2, 0)
+            dist = self.distance(self.egoCar_ahead_waypoints, ahead_wp_index, stop_index)
+            EgoCar_velocity = math.sqrt(2*MAX_DECELERATION*dist)
+            if EgoCar_velocity < 1.0:
+                EgoCar_velocity = 0.0
+            wp.twist.twist.linear.x = min(EgoCar_velocity, wp.twist.twist.linear.x)
+            Updated_egoCar_ahead_waypoints.append(wp)
+
+        return Updated_egoCar_ahead_waypoints
+
+    ###########################################################################
 
     def pose_cb(self, msg):
         """
@@ -195,15 +223,17 @@ class WaypointUpdater(object):
         Input: 
             ROS PoseStamped msg
         """
-        self.current_pose = msg.pose
+        self.egoCar_pose = msg.pose
         # calculate the quaternion to get heading
-        quaternion = (self.current_pose.orientation.x,
-                      self.current_pose.orientation.y,
-                      self.current_pose.orientation.z,
-                      self.current_pose.orientation.w)
+        quaternion = (self.egoCar_pose.orientation.x,
+                      self.egoCar_pose.orientation.y,
+                      self.egoCar_pose.orientation.z,
+                      self.egoCar_pose.orientation.w)
         euler = tf.transformations.euler_from_quaternion(quaternion)
         yaw = euler[2]
-        self.current_heading = yaw
+        self.egoCar_heading = yaw
+
+    ###########################################################################
 
     def waypoints_cb(self, waypoints):
         """
@@ -211,7 +241,9 @@ class WaypointUpdater(object):
         Input: 
             list of waypoints
         """
-        self.base_waypoints = waypoints
+        self.full_track_wpts = waypoints
+
+    ###########################################################################
 
     def traffic_cb(self, msg):
         """
@@ -219,7 +251,21 @@ class WaypointUpdater(object):
         Input: 
             list of traffic waypoints
         """
-        self.traffic_waypoint = msg.data
+        #self.traffic_waypoint = msg.data
+        self.stopline_wp_index = msg.data
+
+    ###########################################################################
+
+    def trafficLights_cb(self, msg):
+        """
+        callback function that sets the waypoints of the capstone track traffic
+        Input: 
+            list of traffic waypoints
+        """
+        #self.traffic_waypoint = msg.data
+        self.traffic_lights_List = msg
+
+    ###########################################################################
             
     def velocity_cb(self, msg):
         """
@@ -227,17 +273,22 @@ class WaypointUpdater(object):
         Input: 
             twist message
         """
-        self.current_velocity = msg.twist.linear.x
+        self.egoCar_velocity = msg.twist.linear.x
+
+    ###########################################################################
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
+    ###########################################################################
 
     def get_waypoint_velocity(self, waypoint):
         return waypoint.twist.twist.linear.x
+    ###########################################################################
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
+    ###########################################################################
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
@@ -246,6 +297,7 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+    ###########################################################################
         
     def dist(self, p1, p2):
         """
@@ -258,6 +310,7 @@ class WaypointUpdater(object):
         		dist - distance between the two input points
         """
         return math.sqrt((p2.x-p1.x)**2 + (p2.y-p1.y)**2 + (p2.z-p1.z)**2)
+    ###########################################################################
 
 
 if __name__ == '__main__':
