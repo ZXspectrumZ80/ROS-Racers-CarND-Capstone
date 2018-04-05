@@ -1,0 +1,8 @@
+*/
+*.json
+*.record
+model.ckpt*
+checkpoint
+events.out.*
+graph.pbtxt
+pipeline.config

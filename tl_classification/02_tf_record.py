@@ -65,7 +65,7 @@ def record(postfix):
   output_path = OUTPUT_DIR + "/tl_" + postfix + ".record"
   writer = tf.python_io.TFRecordWriter(output_path)
 
-  annotations_file = "data/annotations_" + postfix + ".json"
+  annotations_file = OUTPUT_DIR + "/annotations_" + postfix + ".json"
 
   images = []
   with tf.gfile.GFile(annotations_file, 'r') as fid:
@@ -81,10 +81,7 @@ def record(postfix):
 
 def main(_):
   for s in ["train", "val"]:
-    postfix = MODE
-    if s == "val":
-      postfix += "_val"
-    record(postfix)
+    record(s)
 
 
 if __name__ == '__main__':

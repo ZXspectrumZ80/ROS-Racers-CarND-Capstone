@@ -39,7 +39,7 @@ def convert(postfix, files):
                 print("convert error:" + file)
 
 
-    with open("data/annotations_" + postfix + ".json", 'w') as f:
+    with open(OUTPUT_DIR + "/annotations_" + postfix + ".json", 'w') as f:
         f.write(json.dumps({"images":images}, indent=2))
 
 
@@ -48,5 +48,5 @@ for s in ["train", "val"]:
     if s == "val":
         postfix += "_val"
     files = glob.glob("data/images_" + postfix + '/*.xml')
-    convert(postfix, files)
+    convert(s, files)
 
