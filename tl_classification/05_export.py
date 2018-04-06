@@ -13,6 +13,6 @@ cmd = "python object_detection/export_inference_graph.py"
 cmd += " --logtostderr"
 cmd += " --pipeline_config_path=" + CONFIG_PATH
 cmd += " --trained_checkpoint_prefix=" + EXPORT_CHECKPOINT_PATH
-cmd += " --output_directory=" + OUTPUT_DIR
+cmd += " --output_directory=" + output_directory
 
 os.system(cmd)
