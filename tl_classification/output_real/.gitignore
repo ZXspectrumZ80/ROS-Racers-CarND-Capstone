@@ -1,6 +1,7 @@
 */
 *.json
 *.record
+*.config
 model.ckpt*
 checkpoint
 events.out.*

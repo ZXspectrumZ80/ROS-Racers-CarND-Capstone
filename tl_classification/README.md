@@ -21,16 +21,22 @@
 ./02_tf_record.py
 ```
 
-### 03 Train
+### 03 Make Model Config
 * Run the following command
 ```bash
-./03_train.py
+./03_model_config.py
 ```
 
-### 04 Export
+### 04 Train
 * Run the following command
 ```bash
-./04_export.py
+./04_train.py
+```
+
+### 05 Export
+* Run the following command
+```bash
+./05_export.py
 ```
 
 ## Detection

@@ -11,3 +11,4 @@ cmd += " --pipeline_config_path=" + CONFIG_PATH
 cmd += " --train_dir=" + OUTPUT_DIR
 
 os.system(cmd)
+
