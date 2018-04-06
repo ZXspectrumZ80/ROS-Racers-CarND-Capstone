@@ -39,6 +39,12 @@
 ./05_export.py
 ```
 
+### 06 Tensorboard
+* Run the following command
+```bash
+./06_tensorboard.py
+```
+
 ## Detection
 * Open detection.ipynb in Jupyter and Run
 
