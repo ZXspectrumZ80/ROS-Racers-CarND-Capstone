@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 import json
+import os
 
 from object_detection.utils import dataset_util
 from config import *

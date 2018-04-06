@@ -43,6 +43,10 @@ def convert(postfix, files):
         f.write(json.dumps({"images":images}, indent=2))
 
 
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
+
+
 for s in ["train", "val"]:
     postfix = MODE
     if s == "val":
