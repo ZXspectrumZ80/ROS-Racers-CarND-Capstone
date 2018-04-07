@@ -27,8 +27,13 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 	# Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS    = 200 	# Number of waypoints we will publish. You can change this number
 MAX_DECELERATION = 0.5
+RED_LIGHT        = 0
+TARGET_SPEED_MPH = 30   # Miles per Hour
+TARGET_SPEED_MPS = (TARGET_SPEED_MPH * 1609) / (60 * 60)    # Meter per Sec
+SIMULATOR_TRAFFIC_ENABLED = True  # when the Flag is set the planner gets the traffic data directly from the Simulator
+
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -42,21 +47,26 @@ class WaypointUpdater(object):
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
         rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.trafficLights_cb, queue_size=1)
 
+        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
+
         # publisher nodes
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # member variables
-        self.egoCar_pose             = None
-        self.egoCar_heading          = None
-        self.egoCar_velocity         = None
-        self.full_track_wpts         = None
-        self.traffic_waypoint        = None
-        self.traffic_lights          = None
+        self.egoCar_pose                 = None
+        self.egoCar_heading              = None
+        self.egoCar_velocity             = None
+        self.full_track_wpts             = None
+        self.traffic_waypoint            = None
+        self.traffic_lights_List         = None
 
-        self.stopline_wp_index       = -1
-        self.egoCar_closest_wp_index = None
-        self.egoCar_ahead_waypoints  = None
-        self.egoCar_lane             = None
+        self.stopline_wp_index           = -1
+        self.egoCar_closest_wp_index     = None
+        self.egoCar_ahead_waypoints      = None
+        self.egoCar_lane                 = None
+        self.closest_TL_EgoCar_distance  = 1e4
+        self.previous_TL_EgoCar_distance = 0.0
+        self.closest_TL_index            = -1
 
         # run process to update EgoCar waypoints
         self.loop()
@@ -116,7 +126,7 @@ class WaypointUpdater(object):
                                   (egoCar_pos_vector - closest_track_wp_vector) )
 
         if DOT_Product_val > 0:      # The Closest Point is behind the Ego Car
-            closest_track_wp_index = (closest_track_wp_index + 5) % len(full_track_wpts)   # increment the index by 5 step (by trial and error)
+            closest_track_wp_index = (closest_track_wp_index + 2) % len(full_track_wpts)   # increment the index by 2 step (by trial and error)
 
         return closest_track_wp_index
     ###########################################################################
@@ -157,10 +167,16 @@ class WaypointUpdater(object):
         """
         # setup list
 
-        closest_egoCar_wp_index  = self.egoCar_closest_wp_index
-        farthest_egoCar_wp_index = closest_egoCar_wp_index + LOOKAHEAD_WPS
+        full_track_length = len(self.full_track_wpts.waypoints)
+        egoCar_ahead_waypoints = []
 
-        egoCar_ahead_waypoints = self.full_track_wpts.waypoints[closest_egoCar_wp_index:farthest_egoCar_wp_index]
+        idx  = self.egoCar_closest_wp_index
+
+        for i in range(LOOKAHEAD_WPS):
+            egoCar_ahead_waypoints.append(self.full_track_wpts.waypoints[(idx + i)% full_track_length])
+
+        #print(" egoCar_ahead_waypoints size:", len(egoCar_ahead_waypoints))
+
         self.egoCar_ahead_waypoints = egoCar_ahead_waypoints
 
     ###########################################################################
@@ -174,6 +190,8 @@ class WaypointUpdater(object):
             waypoints - final set of waypoints
         """
 
+        if ((self.traffic_lights_List is not None) and SIMULATOR_TRAFFIC_ENABLED):
+            self.get_RED_traffic_lights()
         # setup list of waypoints
         self.generate_egoCar_lane()
         # publish message
@@ -187,10 +205,13 @@ class WaypointUpdater(object):
         egoCar_lane.header.frame_id = '/world'
         egoCar_lane.header.stamp = rospy.Time(0)
 
-        farthest_egoCar_wp_index = self.egoCar_closest_wp_index + LOOKAHEAD_WPS
+        farthest_egoCar_wp_index = (self.egoCar_closest_wp_index + LOOKAHEAD_WPS)\
+                                   #% len(self.full_track_wpts.waypoints)
 
         if (self.stopline_wp_index == -1) or (self.stopline_wp_index >= farthest_egoCar_wp_index):
             egoCar_lane.waypoints = self.egoCar_ahead_waypoints
+            for i in range(len(egoCar_lane.waypoints)-1):
+                self.set_waypoint_velocity(egoCar_lane.waypoints, i  , TARGET_SPEED_MPS)
         else:
             egoCar_lane.waypoints = self.decelerate_egoCar_waypoints()
 
@@ -201,19 +222,81 @@ class WaypointUpdater(object):
     def decelerate_egoCar_waypoints(self):
 
         Updated_egoCar_ahead_waypoints = []
-        for ahead_wp_index, ahead_wp in enumerate(self.egoCar_ahead_waypoints):
-            wp = Waypoint()
-            wp.pose = ahead_wp.pose
-            # 2 points back from the line so front of the Ego Car stops almost on the line
-            stop_index = max(self.stopline_wp_index - self.closest_egoCar_wp_index - 2, 0)
-            dist = self.distance(self.egoCar_ahead_waypoints, ahead_wp_index, stop_index)
-            EgoCar_velocity = math.sqrt(2*MAX_DECELERATION*dist)
+        EgoCar_wpts_length = len(self.egoCar_ahead_waypoints)
+        TL_stop_wp = self.full_track_wpts.waypoints[self.stopline_wp_index].pose.pose.position
+        Stop_Margin = 28.0      # to stop before the traffic light - It depends on the target speed
+
+        for i in range(0,EgoCar_wpts_length):
+
+            ahead_wp = self.egoCar_ahead_waypoints[i]
+            ahead_wp_position = ahead_wp.pose.pose.position
+
+            egoCar_wp_TL_stop_dist = self.dist(ahead_wp_position, TL_stop_wp)
+            EgoCar_velocity = math.sqrt(2 * MAX_DECELERATION * max(0, egoCar_wp_TL_stop_dist - Stop_Margin))
             if EgoCar_velocity < 1.0:
                 EgoCar_velocity = 0.0
-            wp.twist.twist.linear.x = min(EgoCar_velocity, wp.twist.twist.linear.x)
-            Updated_egoCar_ahead_waypoints.append(wp)
+            ahead_wp.twist.twist.linear.x = EgoCar_velocity
+            Updated_egoCar_ahead_waypoints.append(ahead_wp)
 
         return Updated_egoCar_ahead_waypoints
+
+    ###########################################################################
+
+    def get_RED_traffic_lights(self):
+
+        TLs = self.traffic_lights_List.lights
+        number_of_traffic_lights = len(TLs)
+        #print(" number_of_traffic_lights %d" % number_of_traffic_lights)
+
+        closest_TL_index = -1
+
+        closest_TL_EgoCar_distance = 1e4  # Any big number
+
+        for i in range(0,number_of_traffic_lights):
+
+            # TL_status = TLs[i].state
+
+            # compares each traffic Light pose to ego Car pose if Light is RED
+            TL_EgoCar_distance = self.dist(self.egoCar_pose.position, TLs[i].pose.pose.position)
+
+            if (TL_EgoCar_distance < closest_TL_EgoCar_distance) and (TLs[i].state == RED_LIGHT):
+                closest_TL_EgoCar_distance = TL_EgoCar_distance
+                closest_TL_index = i
+
+        self.closest_TL_EgoCar_distance = closest_TL_EgoCar_distance
+        self.closest_TL_index           = closest_TL_index
+
+        #print(" closest_TL_index %d" % self.closest_TL_index)
+        #print(" closest_TL_EgoCar_distance %f" % self.closest_TL_EgoCar_distance)
+
+
+        if self.full_track_wpts is not None:
+            full_track_wpts = self.full_track_wpts.waypoints
+        else:
+            return -1
+
+        closest_TL_wpts_distance = 1e4
+
+        # compares each waypoint to current pose
+        for i in range(len(full_track_wpts)):
+            wpt_TL_distance = self.dist(TLs[self.closest_TL_index].pose.pose.position,
+                                        full_track_wpts[i].pose.pose.position)
+            if wpt_TL_distance < closest_TL_wpts_distance:
+                closest_TL_wpts_distance = wpt_TL_distance
+                closest_TL_wp_index = i
+
+
+        # Check if the closest traffic light  is ahead or behind the Ego Car
+        if ((self.closest_TL_EgoCar_distance - self.previous_TL_EgoCar_distance) < 0):
+            self.stopline_wp_index = closest_TL_wp_index
+            #self.decelerate_egoCar_waypoints()
+        else:
+            self.stopline_wp_index = -1
+
+        self.previous_TL_EgoCar_distance = self.closest_TL_EgoCar_distance
+
+        #print(" self.stopline_wp_index %d" % self.stopline_wp_index)
+        #print(" self.egoCar_closest_wp_index %d" % self.egoCar_closest_wp_index)
 
     ###########################################################################
 
@@ -297,6 +380,15 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+    ###########################################################################
+    def distance2(self, waypoints, wp1, wp2):
+
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+
+        dist = dl(waypoints[wp1].pose.pose.position, waypoints[wp2].pose.pose.position)
+
+        return dist
+
     ###########################################################################
         
     def dist(self, p1, p2):
