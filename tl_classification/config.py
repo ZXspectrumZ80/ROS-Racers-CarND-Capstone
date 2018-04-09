@@ -8,4 +8,3 @@ OUTPUT_DIR = TL_CLASSIFICATION_DIR + "/output/" + MODEL_NAME + "_" + MODE
 
 CONFIG_INPUT_PATH = TL_CLASSIFICATION_DIR + "/model_config/" + MODEL_NAME + ".config"
 CONFIG_PATH = OUTPUT_DIR + "/model.config"
-EXPORT_CHECKPOINT_PATH = OUTPUT_DIR + "/model.ckpt-818"
