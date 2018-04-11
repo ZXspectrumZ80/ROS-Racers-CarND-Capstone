@@ -27,16 +27,21 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS    = 200 	# Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS    = 200 	 # Number of waypoints we will publish. You can change this number
 MAX_DECELERATION = 0.5
 RED_LIGHT        = 0
-BIG_NUMBER       = 1e5  # to be used for search routines
-Kp_SPEED         = 0.25 # Proportional Controller Coeff for EgoCar speed regulation
+BIG_NUMBER       = 1e5   # to be used for search routines
+PUBLISH_RATE     = 10    # 20 Hz
+
+# to stop before the traffic light (on the stop line) - highly dependant on the target speed
+STOP_MARGIN      = 28.0  # Stop distance before the traffic light (5.0 meters in test lot)
+Kp_SPEED         = 0.35  # Proportional Controller Coeff for EgoCar speed regulation
 #TARGET_SPEED_MPH = 30   # Miles per Hour
 #TARGET_SPEED_MPS = (TARGET_SPEED_MPH * 1609) / (60 * 60)    # Meter per Sec
 
 # when the Flag is set the planner gets the traffic data directly from the Simulator
 SIMULATOR_TRAFFIC_ENABLED = True
+
 
 
 class WaypointUpdater(object):
@@ -83,7 +88,7 @@ class WaypointUpdater(object):
         """ 
         loop() - continuous loop that processes messages and publishes final waypoints
         """
-        Update_rate = rospy.Rate(10)        # 10 Hz  / previously was 2 Hz
+        Update_rate = rospy.Rate(PUBLISH_RATE)        # 10 Hz  / previously was 2 Hz
         while not rospy.is_shutdown():
             if (self.egoCar_pose is not None) and (self.full_track_wpts is not None):
                 # get index of next waypoint
@@ -215,14 +220,13 @@ class WaypointUpdater(object):
 
         farthest_egoCar_wp_index = (self.egoCar_closest_wp_index + LOOKAHEAD_WPS)
 
-        # len(self.full_track_wpts.waypoints)
-
         if (self.stopline_wp_index == -1) or (self.stopline_wp_index >= farthest_egoCar_wp_index):
             egoCar_lane.waypoints = self.egoCar_ahead_waypoints
             for i in range(0, len(egoCar_lane.waypoints)):
-                # EgoCar speed regulator
+                # EgoCar speed regulator (for testing)
                 desired_waypoint_speed = self.egoCar_velocity + \
                                          Kp_SPEED * (self.TARGET_SPEED_MpS - self.egoCar_velocity)
+                #desired_waypoint_speed = self.TARGET_SPEED_MpS
                 self.set_waypoint_velocity(egoCar_lane.waypoints, i  , desired_waypoint_speed)
         else:
             egoCar_lane.waypoints = self.decelerate_egoCar_waypoints()
@@ -235,18 +239,17 @@ class WaypointUpdater(object):
 
         Updated_egoCar_ahead_waypoints = []
         EgoCar_wpts_length = len(self.egoCar_ahead_waypoints)
-        TL_stop_wp = self.full_track_wpts.waypoints[self.stopline_wp_index].pose.pose.position
-
-        # to stop before the traffic light (on the stop line) - highly dependant on the target speed
-        Stop_Margin = 26.0
+        # TL_stop_wp = self.full_track_wpts.waypoints[self.stopline_wp_index].pose.pose.position
 
         for i in range(0,EgoCar_wpts_length):
 
             ahead_wp = self.egoCar_ahead_waypoints[i]
-            ahead_wp_position = ahead_wp.pose.pose.position
+            # ahead_wp_position = ahead_wp.pose.pose.position
 
-            egoCar_wp_TL_stop_dist = self.dist(ahead_wp_position, TL_stop_wp)
-            EgoCar_velocity = math.sqrt(2 * MAX_DECELERATION * max(0, egoCar_wp_TL_stop_dist - Stop_Margin))
+            # egoCar_wp_TL_stop_dist = self.dist(ahead_wp_position, TL_stop_wp)
+            egoCar_wp_TL_stop_dist = self.distance(self.full_track_wpts.waypoints,
+                                                   self.egoCar_closest_wp_index + i, self.stopline_wp_index)
+            EgoCar_velocity = math.sqrt(2 * MAX_DECELERATION * max(0, egoCar_wp_TL_stop_dist - STOP_MARGIN))
             if EgoCar_velocity < 1.0:
                 EgoCar_velocity = 0.0
             ahead_wp.twist.twist.linear.x = min(EgoCar_velocity, ahead_wp.twist.twist.linear.x)
