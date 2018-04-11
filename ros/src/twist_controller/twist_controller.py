@@ -4,52 +4,89 @@ from yaw_controller import YawController
 from lowpass import LowPassFilter
 
 GAS_DENSITY = 2.858
-ONE_MPH = 0.44704
+ONE_MPH     = 0.44704    #  KM
 
 
 class Controller(object):
-    def __init__(self, vehicle_mass, brake_deadband, wheel_radius, decel_limit, wheel_base, 
-        steer_ratio, max_lat_accel, max_steer_angle, Kp, Ki, Kd):
+    def __init__(self, vehicle_mass, fuel_capacity, brake_deadband, wheel_radius,
+                 decel_limit, accel_limit, wheel_base, steer_ratio, max_lat_accel, max_steer_angle):
 
-        min_speed = 1.0 * ONE_MPH
-        self.throttle_pid = PID(Kp, Ki, Kd)
-        self.yaw_control = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
-        self.brake_deadband = brake_deadband
-        self.v_mass = vehicle_mass
-        self.w_radius = wheel_radius
-        self.d_limit = decel_limit
-        self.last_time = None
-        self.max_speed = 0
+        min_speed = 0.1   #  KM
 
-    def control(self, target_v, target_omega, current_v, dbw_enabled):
+        self.Yaw_Controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
+
+        throttle_kp           = 0.80     #
+        throttle_ki           = 0.0008   #
+        throttle_kd           = 0.15     #
+        min_throttle_limit    = 0.0      # Minimum throttle value
+        max_throttle_limit    = 0.2      # Maximum throttle value
+
+        steer_kp              = 0.20     #
+        steer_ki              = 0.02     #
+        steer_kd              = 0.00     #
+        min_steer_limit       = -max_steer_angle
+        max_steer_limit       = max_steer_angle
+
+        self.Throttle_Controller = PID(throttle_kp, throttle_ki, throttle_kd, min_throttle_limit, max_throttle_limit)
+        self.Steering_Controller = PID(steer_kp, steer_ki, steer_kd, min_steer_limit, max_steer_limit)
+
+        Tau                   = 0.5      # cut-off frequency = 1/(2*PI*Tau) = 0.32 Hz
+        Ts                    = 0.02     # Sample time in sec (50 Hz)
+
+        self.Velocity_LPF     = LowPassFilter(Tau, Ts)
+
+        self.vehicle_mass    = vehicle_mass
+        self.fuel_capacity   = fuel_capacity
+        self.brake_deadband  = brake_deadband
+        self.wheel_radius    = wheel_radius
+        self.decel_limit     = decel_limit
+        self.accel_limit     = accel_limit
+
+        self.last_time       = rospy.get_time()
+
+    ###########################################################################
+    def control(self, target_velocity, target_omega, current_velocity, current_omega, dbw_enabled):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
-        if self.last_time is None or not dbw_enabled:
-            self.last_time = time.time()
+
+        if not dbw_enabled:
+            self.Throttle_Controller.reset()
             return 0.0, 0.0, 0.0
 
-        if target_v.x > self.max_speed:
-            self.max_speed = target_v.x
+        filtered_current_velocity = self.Velocity_LPF.filt(current_velocity)
 
-        dt = time.time() - self.last_time
-        error = min(target_v.x, self.max_speed) - current_v.x
-        throttle = self.throttle_pid.step(error, dt)
-        throttle = max(0.0, min(1.0, throttle)) # Max_throtle = 1.0
+        # get the open loop steering value
+        estimated_steering = self.Yaw_Controller.get_steering(target_velocity,
+                                                              target_omega, filtered_current_velocity)
+        # steering = self.Yaw_Controller.get_steering(target_velocity, target_omega, current_velocity)
 
-        if error < 0: # decelerate
-            deceleration        = abs(error) / dt
-            if abs(deceleration) > abs(self.d_limit)*500:
-                deceleration = self.d_limit*500
-            longitudinal_force  = self.v_mass * deceleration
-            brake = longitudinal_force * self.w_radius
-            if brake < self.brake_deadband:
-                brake = 0.0
+        velocity_error     = target_velocity - filtered_current_velocity
+        # velocity_error = target_velocity - current_velocity
+        self.last_velocity = filtered_current_velocity
+        current_time       = rospy.get_time()
+        sample_time        = current_time - self.last_time
+        self.last_time     = current_time
+
+        omega_error        = target_omega - current_omega
+
+        throttle = self.Throttle_Controller.step(velocity_error, sample_time)
+        brake    = 0.0
+        # get the closed loop steering correction value
+        steering_correction = self.Steering_Controller.step(omega_error, sample_time)
+
+        steering = estimated_steering + steering_correction
+
+        if (target_velocity == 0.0) and (filtered_current_velocity < 0.1):  # the car is stationary
             throttle = 0.0
-        else:
+            brake    = 400  # to hold the car in place if we stopped are stopped at traffic light
+                            # Acceleration = -1 m/s^2
+        elif (throttle < 0.1) and (velocity_error < 0.1):                   # the car is decelerating
+            throttle = 0.0
+            decel    = max(velocity_error, self.decel_limit)                # should be velocity_error / dt
+            brake    = abs(decel) * (self.vehicle_mass + GAS_DENSITY * self.fuel_capacity) \
+                       * self.wheel_radius                                  # Torque N.m
+
+        if brake < self.brake_deadband:
             brake = 0.0
-        
-        steer = self.yaw_control.get_steering(target_v.x, target_omega.z, current_v.x)
-        self.last_time = time.time()
 
-        return throttle, brake, steer
-
+        return throttle, brake, steering
