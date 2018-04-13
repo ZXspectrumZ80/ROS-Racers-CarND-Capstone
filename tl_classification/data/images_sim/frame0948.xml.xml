@@ -1,7 +1,7 @@
 <annotation>
 	<folder>sim</folder>
-	<filename>frame0413.jpg</filename>
-	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/sim/frame0413.jpg</path>
+	<filename>frame0948.jpg</filename>
+	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/sim/frame0948.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -12,27 +12,27 @@
 	</size>
 	<segmented>0</segmented>
 	<object>
-		<name>red</name>
+		<name>green</name>
 		<pose>Unspecified</pose>
-		<truncated>0</truncated>
+		<truncated>1</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>284</xmin>
-			<ymin>142</ymin>
-			<xmax>356</xmax>
-			<ymax>305</ymax>
+			<xmin>1</xmin>
+			<ymin>38</ymin>
+			<xmax>85</xmax>
+			<ymax>234</ymax>
 		</bndbox>
 	</object>
 	<object>
-		<name>red</name>
+		<name>green</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>607</xmin>
-			<ymin>150</ymin>
-			<xmax>681</xmax>
-			<ymax>315</ymax>
+			<xmin>387</xmin>
+			<ymin>50</ymin>
+			<xmax>479</xmax>
+			<ymax>243</ymax>
 		</bndbox>
 	</object>
 </annotation>
