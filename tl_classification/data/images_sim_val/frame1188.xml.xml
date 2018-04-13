@@ -1,7 +1,7 @@
 <annotation>
-	<folder>sim</folder>
+	<folder>images_sim_val</folder>
 	<filename>frame1188.jpg</filename>
-	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/sim/frame1188.jpg</path>
+	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/images_sim_val/frame1188.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>

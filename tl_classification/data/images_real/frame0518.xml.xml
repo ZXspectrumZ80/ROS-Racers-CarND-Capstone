@@ -1,7 +1,7 @@
 <annotation>
-	<folder>real</folder>
+	<folder>images_real</folder>
 	<filename>frame0518.jpg</filename>
-	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/real/frame0518.jpg</path>
+	<path>/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification/data/images_real/frame0518.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
