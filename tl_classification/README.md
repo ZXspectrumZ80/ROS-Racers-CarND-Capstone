@@ -1,7 +1,7 @@
 # Traffic Light Clasification
 
-## Google Object Detection API
-* Check out the google object detection API
+## Tensorflow Object Detection API
+* Check out the tensorflow object detection API
   - https://github.com/tensorflow/models/tree/master/research/object_detection
 
 ## Train Steps
