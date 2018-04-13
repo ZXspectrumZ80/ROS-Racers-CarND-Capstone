@@ -73,6 +73,14 @@ class TLClassifier(object):
         cls = classes[0]
         rospy.loginfo("tl_classifier: class=" + cls + ", score=" + scores[0] + ", elapsed=" + str(elapsed))
 
+        box = boxes[0]
+        box_h = box[2] - box[0]
+        box_w = box[3] - box[1]
+        
+        if box_h < 0.05 or box_w < 0.02:  
+            rospy.loginfo("tl_classifier: too small")
+            return TrafficLight.UNKNOWN
+
         if cls == 1:
             return TrafficLight.RED
         elif cls == 2:
