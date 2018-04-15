@@ -29,9 +29,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS    = 200 	 # Number of waypoints we will publish. You can change this number
 MAX_DECELERATION = 0.5
-RED_LIGHT        = 0
-BIG_NUMBER       = 1e5   # to be used for search routines
-PUBLISH_RATE     = 10    # 20 Hz
+PUBLISH_RATE     = 5     # 5 Hz
 
 # to stop before the traffic light (on the stop line) - highly dependant on the target speed
 STOP_MARGIN      = 28.0  # Stop distance before the traffic light (5.0 meters in test lot)
@@ -40,7 +38,7 @@ Kp_SPEED         = 0.35  # Proportional Controller Coeff for EgoCar speed regula
 #TARGET_SPEED_MPS = (TARGET_SPEED_MPH * 1609) / (60 * 60)    # Meter per Sec
 
 # when the Flag is set the planner gets the traffic data directly from the Simulator
-SIMULATOR_TRAFFIC_ENABLED = True
+SIMULATOR_TRAFFIC_ENABLED = False     # Toggle True or False
 
 
 
@@ -72,7 +70,7 @@ class WaypointUpdater(object):
         self.egoCar_closest_wp_index     = None
         self.egoCar_ahead_waypoints      = None
         self.egoCar_lane                 = None
-        self.closest_TL_EgoCar_distance  = BIG_NUMBER
+        self.closest_TL_EgoCar_distance  = float("inf")
         self.previous_TL_EgoCar_distance = 0.0
         self.closest_TL_index            = -1
 
@@ -110,7 +108,7 @@ class WaypointUpdater(object):
         Return: 
             index of closest waypoint
         """
-        closest_wp_distance = BIG_NUMBER        # Any big number
+        closest_wp_distance = float("inf")        # Any big number
 
         # sets up pose and waypoints
         if self.full_track_wpts is not None:
@@ -119,6 +117,7 @@ class WaypointUpdater(object):
             return -1
 
         # compares each waypoint to current pose
+        closest_track_wp_index = -1
         for i in range(len(full_track_wpts)):
             wpt_pose_distance = self.dist(self.egoCar_pose.position,
                                           full_track_wpts[i].pose.pose.position)
@@ -267,7 +266,7 @@ class WaypointUpdater(object):
 
         closest_TL_index = -1
 
-        closest_TL_EgoCar_distance = BIG_NUMBER  # Any big number
+        closest_TL_EgoCar_distance = float("inf")  # Any big number
 
         for i in range(0,number_of_traffic_lights):
 
@@ -276,22 +275,30 @@ class WaypointUpdater(object):
             # compares each traffic Light pose to ego Car pose if Light is RED
             TL_EgoCar_distance = self.dist(self.egoCar_pose.position, TLs[i].pose.pose.position)
 
-            if (TL_EgoCar_distance < closest_TL_EgoCar_distance) and (TLs[i].state == RED_LIGHT):
+            if (TL_EgoCar_distance < closest_TL_EgoCar_distance) and (TLs[i].state == TrafficLight.RED):
                 closest_TL_EgoCar_distance = TL_EgoCar_distance
                 closest_TL_index = i
 
         self.closest_TL_EgoCar_distance = closest_TL_EgoCar_distance
         self.closest_TL_index           = closest_TL_index
 
-        #print(" closest_TL_index %d" % self.closest_TL_index)
-        #print(" closest_TL_EgoCar_distance %f" % self.closest_TL_EgoCar_distance)
+        if (closest_TL_index == -1):
+            self.stopline_wp_index = -1
+            self.previous_TL_EgoCar_distance = self.closest_TL_EgoCar_distance
+            return
+
+        print(" closest_TL_index %d" % self.closest_TL_index)
+        print(" closest_TL_EgoCar_distance %f" % self.closest_TL_EgoCar_distance)
+
+
 
         if self.full_track_wpts is not None:
             full_track_wpts = self.full_track_wpts.waypoints
         else:
             return -1
 
-        closest_TL_wpts_distance = BIG_NUMBER
+        closest_TL_wpts_distance = float("inf")
+        closest_TL_wp_index      = -1
 
         # compares each track waypoint to the traffic light pose
         for i in range(len(full_track_wpts)):
@@ -351,6 +358,7 @@ class WaypointUpdater(object):
         """
         #self.traffic_waypoint = msg.data
         self.stopline_wp_index = msg.data
+        #print("self.stopline_wp_index :  " + str(self.stopline_wp_index) )
 
     ###########################################################################
 
