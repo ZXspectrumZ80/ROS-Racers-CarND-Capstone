@@ -3,6 +3,7 @@ import os
 import numpy as np
 import time
 
+import cv2
 import rospy
 
 from styx_msgs.msg import TrafficLight
@@ -71,7 +72,9 @@ class TLClassifier(object):
             return TrafficLight.UNKNOWN
 
         cls = classes[0]
-        rospy.loginfo("tl_classifier: class=" + cls + ", score=" + scores[0] + ", elapsed=" + str(elapsed))
+        rospy.loginfo("tl_classifier: class=" + str(cls) + ", score=" + str(scores[0]) + ", elapsed=" + str(elapsed))
+
+        # cv2.imwrite('/capstone/ros/output/camera_image_' + str(time_start) + '_' + str(cls) + '.jpeg', image)
 
         box = boxes[0]
         box_h = box[2] - box[0]
