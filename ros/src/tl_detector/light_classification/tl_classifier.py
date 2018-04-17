@@ -29,7 +29,7 @@ class TLClassifier(object):
     def __init__(self):
         self.is_sim = True
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        model_dir = current_dir + '/../model/ssd_mobilenet_v1_coco_real'
+        model_dir = current_dir + '/../model/faster_rcnn_inception_v2_coco_real'
         if self.is_sim:
             model_dir = current_dir + '/../model/faster_rcnn_inception_v2_coco_sim'
         ckpt_path = model_dir + '/frozen_inference_graph.pb'
