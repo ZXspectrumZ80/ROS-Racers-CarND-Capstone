@@ -80,7 +80,7 @@ class TLClassifier(object):
         box_h = box[2] - box[0]
         box_w = box[3] - box[1]
         
-        if box_h < 0.05 or box_w < 0.02:  
+        if box_h < 0.03 or box_w < 0.01:  
             rospy.loginfo("tl_classifier: too small")
             return TrafficLight.UNKNOWN
 
