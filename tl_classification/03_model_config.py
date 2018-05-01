@@ -10,9 +10,9 @@ def create_model_config():
     def _replace(x):
         x = x.replace("${TL_CLASSIFICATION_DIR}", TL_CLASSIFICATION_DIR)
         if MODE == "real":
-            x = x.replace("${EVAL_NUM_EXAMPLES}", str(3))
+            x = x.replace("${EVAL_NUM_EXAMPLES}", str(32))
         else:
-            x = x.replace("${EVAL_NUM_EXAMPLES}", str(7))
+            x = x.replace("${EVAL_NUM_EXAMPLES}", str(15))
         x = x.replace("${MODE}", MODE)
         return x
 
