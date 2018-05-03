@@ -2,7 +2,7 @@ OD_RESEARCH_DIR = "/Users/illb/tensorflow/models/research"
 TL_CLASSIFICATION_DIR = "/Users/illb/carnd/ROS-Racers-CarND-Capstone/tl_classification"
 
 MODE = "real" # sim | real
-MODEL_NAME = "ssd_mobilenet_v2_coco"
+MODEL_NAME = "faster_rcnn_inception_v2_coco"
 
 OUTPUT_DIR = TL_CLASSIFICATION_DIR + "/output/" + MODEL_NAME + "_" + MODE
 
